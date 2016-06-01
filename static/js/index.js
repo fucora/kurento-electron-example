@@ -4,7 +4,7 @@ var video;
 var webRtcPeer;
 
 
-var ws = new WebSocket('wss://147.75.192.83:8443/one2many');
+var ws = new WebSocket('wss://147.75.199.45:8443/one2many');
 
 window.onload = function() {
 	console = new Console();
@@ -71,7 +71,7 @@ function presenter() {
    		var options = {
    		  localVideo : video,
    		  onicecandidate : onIceCandidate,
-   		  sendSource : 'screen'
+		sendSource : 'screen'
    		};
 
    	    webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerSendonly(options,function(error) {
@@ -113,7 +113,8 @@ function onOfferViewer(error, offerSdp) {
 
 	var message = {
 		id : 'viewer',
-		sdpOffer : offerSdp
+		sdpOffer : offerSdp,
+		presenterId : 1
 	}
 	sendMessage(message);
 }
