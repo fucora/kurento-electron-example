@@ -4,7 +4,7 @@ var video;
 var webRtcPeer;
 
 
-var ws = new WebSocket('wss://147.75.199.45:8443/one2many');
+var ws = new WebSocket('wss://147.75.194.91:8443/one2many');
 
 window.onload = function() {
 	console = new Console();
@@ -113,8 +113,7 @@ function onOfferViewer(error, offerSdp) {
 
 	var message = {
 		id : 'viewer',
-		sdpOffer : offerSdp,
-		presenterId : 1
+		sdpOffer : offerSdp
 	}
 	sendMessage(message);
 }

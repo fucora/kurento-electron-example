@@ -125,12 +125,13 @@ function getScreenConstraints(source, callback) {
 
     // this statement defines getUserMedia constraints
     // that will be used to capture content of screen
-    var screen_constraints = {audio: false, video: {
+    var screen_constraints = {
         mandatory: {
             chromeMediaSource: chromeMediaSource,
             maxWidth: screen.width > 1920 ? screen.width : 1920,
             maxHeight: screen.height > 1080 ? screen.height : 1080
-        }}
+        },
+        optional: []
     };
 
     // this statement verifies chrome extension availability
@@ -151,4 +152,4 @@ function getScreenConstraints(source, callback) {
 
     // now invoking native getUserMedia API
     callback(null, screen_constraints);
-}                                                      
+}
