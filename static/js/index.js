@@ -4,10 +4,11 @@ var video;
 var webRtcPeer;
 
 
-var ws = new WebSocket('wss://147.75.194.91:8443/one2many');
+var ws = new WebSocket('wss://147.75.198.13:8443/one2many');
+
+window.$ = window.jQuery = require('./bower_components/jquery/dist/jquery.js');
 
 window.onload = function() {
-	console = new Console();
 	video = document.getElementById('video');
 
 
@@ -19,6 +20,10 @@ window.onload = function() {
 
 window.onbeforeunload = function() {
 	ws.close();
+}
+
+ws.onopen = function() {
+	console.log("WEB SOCKET OPENED");
 }
 
 ws.onmessage = function(message) {
@@ -71,7 +76,7 @@ function presenter() {
    		var options = {
    		  localVideo : video,
    		  onicecandidate : onIceCandidate,
-		sendSource : 'screen'
+		  sendSource : 'screen'
    		};
 
    	    webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerSendonly(options,function(error) {
