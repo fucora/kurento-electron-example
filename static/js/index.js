@@ -1,12 +1,12 @@
-
+"use strict"
 
 var video;
 var webRtcPeer;
 
+const desktopCapturer = require('electron').desktopCapturer;
+var ws = new WebSocket('wss://147.75.199.219:8443/one2many');
 
-var ws = new WebSocket('wss://147.75.194.91:8443/one2many');
-
-window.$ = window.jQuery = require('./bower_components/jquery/dist/jquery.js');
+const BrowserWindow = require('electron').remote;
 
 window.onload = function() {
 	video = document.getElementById('video');
@@ -15,15 +15,45 @@ window.onload = function() {
 	document.getElementById('call').addEventListener('click', function() { presenter(); } );
 	document.getElementById('viewer').addEventListener('click', function() { viewer(); } );
 	document.getElementById('terminate').addEventListener('click', function() { stop(); } );
+	
 }
 
+$(".menu").hide();
 
 window.onbeforeunload = function() {
 	ws.close();
 }
 
+function refresh() {
+  $('select').imagepicker({
+    hide_select : false
+  });
+}
+
+	function addSource(source) {
+	  console.log("SOURCE ID: " + source.id);
+	  $('select').append($('<option>', {
+		value: source.id,
+		text: source.name
+	  }));
+	  refresh();
+	}
+
+	function showSources() {
+	  desktopCapturer.getSources({ types:['window', 'screen'] }, function(error, sources) {
+		for (let source of sources) {
+		  console.log("Name: " + source.name + "ID: " + source.id);
+		  addSource(source);
+		}
+	  });
+	}
+	
+	showSources();
+	refresh();
+
 ws.onopen = function() {
 	console.log("WEB SOCKET OPENED");
+	$(".menu").show();
 }
 
 ws.onmessage = function(message) {
@@ -72,6 +102,7 @@ function viewerResponse(message) {
 function presenter() {
 	if (!webRtcPeer) {
 		showSpinner(video);
+		
 
    		var options = {
    		  localVideo : video,
@@ -95,6 +126,7 @@ function onOfferPresenter(error, offerSdp) {
 	};
 	sendMessage(message);
 }
+
 
 function viewer() {
 	if (!webRtcPeer) {

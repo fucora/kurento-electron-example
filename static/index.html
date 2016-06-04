@@ -13,7 +13,11 @@
 
     <script src="bower_components/adapter.js/adapter.js"></script>
     <script src="bower_components/jquery/dist/jquery.js"></script>
+	<script>
+		window.$ = window.jQuery = require('./bower_components/jquery/dist/jquery.js');
+	</script>
     <script type="text/javascript" src="js/screen-capture.js"></script>
+	<script type="text/javascript" src="js/image-picker.min.js"></script
     <script src="bower_components/demo-console/index.js"></script>
 
     <script src="bower_components/kurento-utils/js/kurento-utils.js"></script>
@@ -22,6 +26,8 @@
     <title>Demio screen sharing</title>
   </head>
   <body>
+	<select id="picture" class="image-picker show-html" style="display: block;">
+	</select>
     <div class="flex-box">
       <div class="menu">
         <a id="call" href="#" class="btn btn-success">

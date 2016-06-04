@@ -61,6 +61,7 @@ var chromeMediaSource = 'screen';
 var sourceId;
 var screenCallback;
 
+
 // this method can be used to check if chrome extension is installed & enabled.
 function isChromeExtensionAvailable(callback) {
     if (!callback) return;
@@ -83,7 +84,8 @@ function getSourceId(callback) {
     if(sourceId) return callback(sourceId);
     
     screenCallback = callback;
-    window.postMessage('get-sourceId', '*');
+    //window.postMessage('get-sourceId', '*');
+	sourceId = $('select option:selected').val();
 }
 
 var isFirefox = typeof window.InstallTrigger !== 'undefined';
@@ -127,7 +129,8 @@ function getScreenConstraints(source, callback) {
     // that will be used to capture content of screen
     var screen_constraints = {
         mandatory: {
-            chromeMediaSource: chromeMediaSource,
+            chromeMediaSource: "desktop",
+			chromeMediaSourceId: $('select option:selected').val(),
             maxWidth: screen.width > 1920 ? screen.width : 1920,
             maxHeight: screen.height > 1080 ? screen.height : 1080
         },
@@ -138,18 +141,21 @@ function getScreenConstraints(source, callback) {
     // if installed and available then it will invoke extension API
     // otherwise it will fallback to command-line based screen capturing API
 
-    if (chromeMediaSource == 'desktop' && !sourceId) {
+	// chromeMediaSource = "desktop";
+	
+    /* if (chromeMediaSource == 'desktop' && !sourceId) {
         getSourceId(function() {
-            screen_constraints.mandatory.chromeMediaSourceId = sourceId;
-            callback(sourceId == 'PermissionDeniedError' ? sourceId : null, screen_constraints);
+            screen_constraints.mandatory.chromeMediaSourceId = $('select option:selected').val();
+            callback(sourceId == 'PermissionDeniedError' ? $('select option:selected').val() : null, screen_constraints);
         });
         return;
     }
+	
 
     // this statement sets gets 'sourceId" and sets "chromeMediaSourceId" 
     if (chromeMediaSource == 'desktop') {
-        screen_constraints.mandatory.chromeMediaSourceId = sourceId;
-    }
+        screen_constraints.mandatory.chromeMediaSourceId = $('select option:selected').val();
+    }*/
 
     // now invoking native getUserMedia API
     callback(null, screen_constraints);
