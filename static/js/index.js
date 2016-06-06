@@ -107,7 +107,7 @@ function presenter() {
    		var options = {
    		  localVideo : video,
    		  onicecandidate : onIceCandidate,
-		  sendSource : 'screen'
+		sendSource : 'screen'
    		};
 
    	    webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerSendonly(options,function(error) {
