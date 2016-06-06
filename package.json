@@ -19,7 +19,7 @@
     "tutorial"
   ],
   "devDependencies": {
-    "electron-prebuilt": "1.1.0",
+    "electron-prebuilt": "0.37.5",
     "bower": "^1.4.1"
   }
 }
