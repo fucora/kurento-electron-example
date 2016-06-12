@@ -106,8 +106,7 @@ function presenter() {
 
    		var options = {
    		  localVideo : video,
-   		  onicecandidate : onIceCandidate,
-		sendSource : 'screen'
+   		  onicecandidate : onIceCandidate
    		};
 
    	    webRtcPeer = new kurentoUtils.WebRtcPeer.WebRtcPeerSendonly(options,function(error) {
@@ -122,6 +121,9 @@ function presenter() {
 function onOfferPresenter(error, offerSdp) {
 	var message = {
 		id : 'presenter',
+		webinarId : '2759',
+		recordingId : 'recording123',
+		presenterName : 'room_2722:webcam:16425',
 		sdpOffer : offerSdp
 	};
 	sendMessage(message);

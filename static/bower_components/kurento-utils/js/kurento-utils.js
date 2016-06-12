@@ -234,8 +234,12 @@ function WebRtcPeer(mode, options, callback) {
         var offerAudio = true;
         var offerVideo = true;
         if (mediaConstraints) {
-            offerAudio = typeof mediaConstraints.audio === 'boolean' ? mediaConstraints.audio : true;
-            offerVideo = typeof mediaConstraints.video === 'boolean' ? mediaConstraints.video : true;
+            //hacked by Arian <DeQyd.com> Hendricks form Demio.com
+            //this hack is to ensure that if the video / audio param is set
+            //then it is processed as opposed to the previous code which strictly
+            //checked for a boolean value type
+            offerAudio = mediaConstraints.audio ? mediaConstraints.audio : true;
+            offerVideo = mediaConstraints.video ? mediaConstraints.video : true;
         }
         var browserDependantConstraints = browser.name === 'Firefox' && browser.version > 34 ? {
                 offerToReceiveAudio: mode !== 'sendonly' && offerAudio,
@@ -283,6 +287,10 @@ function WebRtcPeer(mode, options, callback) {
         localVideo.src = URL.createObjectURL(videoStream);
         localVideo.muted = true;
     };
+    this.showLocalAudio = function () {
+      localVideo.src = URL.createObjectURL(audioStream);
+      //localVideo.muted = true;
+    }
     this.processAnswer = function (sdpAnswer, callback) {
         callback = (callback || noop).bind(this);
         var answer = new RTCSessionDescription({
@@ -364,6 +372,9 @@ function WebRtcPeer(mode, options, callback) {
             videoStream.addEventListener('ended', streamEndedListener);
             pc.addStream(videoStream);
         }
+        if (audioStream && localVideo) {
+            self.showLocalAudio();
+        }
         if (audioStream) {
             audioStream.addEventListener('ended', streamEndedListener);
             pc.addStream(audioStream);
@@ -384,16 +395,31 @@ function WebRtcPeer(mode, options, callback) {
                 start();
             }, callback);
         }
-        if (sendSource === 'webcam') {
-            getMedia(mediaConstraints);
+        //hacked by Arian <DeQyd.com> Hendricks form Demio.com
+        function getVidAudMedia(constraints) {
+            getUserMedia(constraints || { video: true, audio: true }, function (stream) {
+                //this hack will only work for single stream constraints
+                //for multi streams it will need a more sophisticated apporach ;)
+                if(constraints && constraints.audio && !constraints.video) {
+                 audioStream = stream;
+                } else {
+                  videoStream = stream;
+                }
+                start();
+            }, callback);
+        }
+        //hacked by Arian <DeQyd.com> Hendricks form Demio.com
+        if (sendSource === 'screen' || sendSource === 'desktop') {
+          getScreenConstraints(sendSource, function (error, constraints_) {
+              if (error)
+                  return callback(error);
+              constraints = [mediaConstraints];
+              constraints.unshift(constraints_);
+              getMedia(recursive.apply(undefined, constraints));
+          }, guid);
         } else {
-            getScreenConstraints(sendSource, function (error, constraints_) {
-                if (error)
-                    return callback(error);
-                constraints = [mediaConstraints];
-                constraints.unshift(constraints_);
-                getMedia(recursive.apply(undefined, constraints));
-            }, guid);
+          //hacked by Arian <DeQyd.com> Hendricks form Demio.com
+          getVidAudMedia(mediaConstraints);
         }
     } else {
         setTimeout(start, 0);
@@ -1020,7 +1046,7 @@ module.exports = function(stream, options) {
   harker.setInterval = function(i) {
     interval = i;
   };
-  
+
   harker.stop = function() {
     running = false;
     harker.emit('volume_change', -100, threshold);
@@ -1038,12 +1064,12 @@ module.exports = function(stream, options) {
   // and emit events if changed
   var looper = function() {
     setTimeout(function() {
-    
+
       //check if stop has been called
       if(!running) {
         return;
       }
-      
+
       var currentVolume = getMaxVolume(analyser, fftBins);
 
       harker.emit('volume_change', currentVolume, threshold);
@@ -1119,168 +1145,168 @@ if (typeof Object.create === 'function') {
 
 ;(function(isNode) {
 
-	/**
-	 * Merge one or more objects 
-	 * @param bool? clone
-	 * @param mixed,... arguments
-	 * @return object
-	 */
+        /**
+         * Merge one or more objects
+         * @param bool? clone
+         * @param mixed,... arguments
+         * @return object
+         */
 
-	var Public = function(clone) {
+        var Public = function(clone) {
 
-		return merge(clone === true, false, arguments);
+                return merge(clone === true, false, arguments);
 
-	}, publicName = 'merge';
+        }, publicName = 'merge';
 
-	/**
-	 * Merge two or more objects recursively 
-	 * @param bool? clone
-	 * @param mixed,... arguments
-	 * @return object
-	 */
+        /**
+         * Merge two or more objects recursively
+         * @param bool? clone
+         * @param mixed,... arguments
+         * @return object
+         */
 
-	Public.recursive = function(clone) {
+        Public.recursive = function(clone) {
 
-		return merge(clone === true, true, arguments);
+                return merge(clone === true, true, arguments);
 
-	};
+        };
 
-	/**
-	 * Clone the input removing any reference
-	 * @param mixed input
-	 * @return mixed
-	 */
+        /**
+         * Clone the input removing any reference
+         * @param mixed input
+         * @return mixed
+         */
 
-	Public.clone = function(input) {
+        Public.clone = function(input) {
 
-		var output = input,
-			type = typeOf(input),
-			index, size;
+                var output = input,
+                        type = typeOf(input),
+                        index, size;
 
-		if (type === 'array') {
+                if (type === 'array') {
 
-			output = [];
-			size = input.length;
+                        output = [];
+                        size = input.length;
 
-			for (index=0;index<size;++index)
+                        for (index=0;index<size;++index)
 
-				output[index] = Public.clone(input[index]);
+                                output[index] = Public.clone(input[index]);
 
-		} else if (type === 'object') {
+                } else if (type === 'object') {
 
-			output = {};
+                        output = {};
 
-			for (index in input)
+                        for (index in input)
 
-				output[index] = Public.clone(input[index]);
+                                output[index] = Public.clone(input[index]);
 
-		}
+                }
 
-		return output;
+                return output;
 
-	};
+        };
 
-	/**
-	 * Merge two objects recursively
-	 * @param mixed input
-	 * @param mixed extend
-	 * @return mixed
-	 */
+        /**
+         * Merge two objects recursively
+         * @param mixed input
+         * @param mixed extend
+         * @return mixed
+         */
 
-	function merge_recursive(base, extend) {
+        function merge_recursive(base, extend) {
 
-		if (typeOf(base) !== 'object')
+                if (typeOf(base) !== 'object')
 
-			return extend;
+                        return extend;
 
-		for (var key in extend) {
+                for (var key in extend) {
 
-			if (typeOf(base[key]) === 'object' && typeOf(extend[key]) === 'object') {
+                        if (typeOf(base[key]) === 'object' && typeOf(extend[key]) === 'object') {
 
-				base[key] = merge_recursive(base[key], extend[key]);
+                                base[key] = merge_recursive(base[key], extend[key]);
 
-			} else {
+                        } else {
 
-				base[key] = extend[key];
+                                base[key] = extend[key];
 
-			}
+                        }
 
-		}
+                }
 
-		return base;
+                return base;
 
-	}
+        }
 
-	/**
-	 * Merge two or more objects
-	 * @param bool clone
-	 * @param bool recursive
-	 * @param array argv
-	 * @return object
-	 */
+        /**
+         * Merge two or more objects
+         * @param bool clone
+         * @param bool recursive
+         * @param array argv
+         * @return object
+         */
 
-	function merge(clone, recursive, argv) {
+        function merge(clone, recursive, argv) {
 
-		var result = argv[0],
-			size = argv.length;
+                var result = argv[0],
+                        size = argv.length;
 
-		if (clone || typeOf(result) !== 'object')
+                if (clone || typeOf(result) !== 'object')
 
-			result = {};
+                        result = {};
 
-		for (var index=0;index<size;++index) {
+                for (var index=0;index<size;++index) {
 
-			var item = argv[index],
+                        var item = argv[index],
 
-				type = typeOf(item);
+                                type = typeOf(item);
 
-			if (type !== 'object') continue;
+                        if (type !== 'object') continue;
 
-			for (var key in item) {
+                        for (var key in item) {
 
-				var sitem = clone ? Public.clone(item[key]) : item[key];
+                                var sitem = clone ? Public.clone(item[key]) : item[key];
 
-				if (recursive) {
+                                if (recursive) {
 
-					result[key] = merge_recursive(result[key], sitem);
+                                        result[key] = merge_recursive(result[key], sitem);
 
-				} else {
+                                } else {
 
-					result[key] = sitem;
+                                        result[key] = sitem;
 
-				}
+                                }
 
-			}
+                        }
 
-		}
+                }
 
-		return result;
+                return result;
 
-	}
+        }
 
-	/**
-	 * Get type of variable
-	 * @param mixed input
-	 * @return string
-	 *
-	 * @see http://jsperf.com/typeofvar
-	 */
+        /**
+         * Get type of variable
+         * @param mixed input
+         * @return string
+         *
+         * @see http://jsperf.com/typeofvar
+         */
 
-	function typeOf(input) {
+        function typeOf(input) {
 
-		return ({}).toString.call(input).slice(8, -1).toLowerCase();
+                return ({}).toString.call(input).slice(8, -1).toLowerCase();
 
-	}
+        }
 
-	if (isNode) {
+        if (isNode) {
 
-		module.exports = Public;
+                module.exports = Public;
 
-	} else {
+        } else {
 
-		window[publicName] = Public;
+                window[publicName] = Public;
 
-	}
+        }
 
 })(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
 },{}],12:[function(require,module,exports){
@@ -3389,7 +3415,7 @@ exports.parse = function(sdp) {
             /(alcatel|geeksphone|huawei|lenovo|nexian|panasonic|(?=;\s)sony)[_\s-]?([\w-]+)*/i
                                                                                 // Alcatel/GeeksPhone/Huawei/Lenovo/Nexian/Panasonic/Sony
             ], [VENDOR, [MODEL, /_/g, ' '], [TYPE, MOBILE]], [
-                
+
             /(nexus\s9)/i                                                       // HTC Nexus 9
             ], [MODEL, [VENDOR, 'HTC'], [TYPE, TABLET]], [
 
@@ -3511,7 +3537,7 @@ exports.parse = function(sdp) {
             ], [VENDOR, MODEL, [TYPE, MOBILE]], [
             /(i-STYLE2.1)/i                                                     // i-mobile i-STYLE 2.1
             ], [[MODEL, 'i-STYLE 2.1'], [VENDOR, 'i-mobile'], [TYPE, MOBILE]], [
-            
+
             /(mobiistar touch LAI 512)/i                                        // mobiistar touch LAI 512
             ], [[MODEL, 'Touch LAI 512'], [VENDOR, 'mobiistar'], [TYPE, MOBILE]], [
 
@@ -3713,7 +3739,7 @@ exports.parse = function(sdp) {
     }
 
     // jQuery/Zepto specific (optional)
-    // Note: 
+    // Note:
     //   In AMD env the global scope should be kept clean, but jQuery is an exception.
     //   jQuery always exports to global scope, unless jQuery.noConflict(true) is used,
     //   and we should catch that.
@@ -4112,3 +4138,4 @@ WildEmitter.mixin(WildEmitter);
 
 },{}]},{},[2])(2)
 });
+
